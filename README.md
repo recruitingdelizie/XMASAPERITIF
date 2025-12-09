@@ -1,2 +1,493 @@
-# XMASAPERITIF
-XMAS APERITIF - Atto V
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aperitivo Vigilia di Natale</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Text:wght@400;600;700&family=Roboto:wght@400;700&display=swap');
+    body { margin: 0; padding: 0; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel"> const { useState, useEffect } = React;
+
+// Icone SVG
+const Wine = ({ size = 24, strokeWidth = 2, className = "" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M8 22h8" /><path d="M7 10h10" /><path d="M12 15v7" /><path d="M12 15a5 5 0 0 0 5-5c0-2-.5-4-2-8H9c-1.5 4-2 6-2 8a5 5 0 0 0 5 5Z" />
+  </svg>
+);
+
+const Info = ({ size = 24, strokeWidth = 2, className = "" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" />
+  </svg>
+);
+
+const Sparkles = ({ size = 24, strokeWidth = 2, className = "" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" /><path d="M5 3v4" /><path d="M19 17v4" /><path d="M3 5h4" /><path d="M17 19h4" />
+  </svg>
+);
+
+const Calendar = ({ size = 24 }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+  </svg>
+);
+
+const MapPin = ({ size = 24 }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
+  </svg>
+);
+
+const Instagram = ({ size = 24 }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+  </svg>
+);
+
+const Facebook = ({ size = 24 }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+  </svg>
+);
+
+// Storage mock
+const mockStorage = {
+  data: {},
+  async get(key) { return this.data[key] ? { key, value: this.data[key] } : null; },
+  async set(key, value) { this.data[key] = value; return { key, value }; },
+  async list(prefix) { return { keys: Object.keys(this.data).filter(k => k.startsWith(prefix || '')) }; }
+};
+if (!window.storage) window.storage = mockStorage;
+
+const App = () => {
+  const [view, setView] = useState('home');
+  const [tables, setTables] = useState([]);
+
+  useEffect(() => { loadTables(); }, []);
+
+const loadTables = async () => {
+  try {
+    // Carica tavoli da Google Sheets
+    const response = await fetch('https://script.google.com/macros/s/AKfycbyFP3ACqDbGzAIA0Uq6RFhJriw0VgDZRivR-kMivlbuyt2mjqfCeJugqbgDgjAlF3HhhA/exec');
+    const tablesFromSheets = await response.json();
+    setTables(tablesFromSheets);
+  } catch (error) {
+    console.error('Errore caricamento tavoli:', error);
+    setTables([]);
+  }
+};
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-red-950 via-red-900 to-red-950 text-white">
+      {view === 'home' && <HomeScreen setView={setView} />}
+      {view === 'booking' && <BookingScreen setView={setView} tables={tables} loadTables={loadTables} />}
+      {view === 'info' && <InfoScreen setView={setView} />}
+      {view === 'social' && <SocialScreen setView={setView} />}
+    </div>
+  );
+};
+
+const HomeScreen = ({ setView }) => (
+  <div className="h-screen flex flex-col items-center justify-center p-2">
+    <div className="text-center mb-1.5">
+      <h1 className="text-base mb-0.5" style={{ fontFamily: 'Bodoni MT, Georgia, serif' }}>Aperitivo</h1>
+      <h1 className="text-base mb-0.5" style={{ fontFamily: 'Bodoni MT, Georgia, serif' }}>XMAS APERITIF</h1>
+      <p className="text-[10px] opacity-90">24 Dicembre 2025</p>
+    </div>
+    <div className="flex flex-col gap-1.5 w-full max-w-[190px]">
+      <button onClick={() => setView('booking')} className="aspect-square bg-white text-black rounded-lg shadow-2xl hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center p-1.5">
+        <Wine size={16} strokeWidth={1.5} className="mb-0.5" />
+        <span className="text-[9px] font-bold text-center leading-tight" style={{ fontFamily: 'DM Serif Text, serif' }}>Prenota il tuo tavolo</span>
+      </button>
+      <button onClick={() => setView('info')} className="aspect-square bg-white text-black rounded-lg shadow-2xl hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center p-1.5">
+        <Info size={16} strokeWidth={1.5} className="mb-0.5" />
+        <span className="text-[9px] font-bold text-center leading-tight" style={{ fontFamily: 'DM Serif Text, serif' }}>Info Utili</span>
+      </button>
+      <button onClick={() => setView('social')} className="aspect-square bg-white text-black rounded-lg shadow-2xl hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center p-1.5">
+        <Sparkles size={16} strokeWidth={1.5} className="mb-0.5" />
+        <span className="text-[9px] font-bold text-center leading-tight" style={{ fontFamily: 'DM Serif Text, serif' }}>Seguici sui social</span>
+      </button>
+    </div>
+    <p className="mt-1.5 opacity-75 text-[10px]">✨ Un'esperienza indimenticabile ✨</p>
+  </div>
+);const BookingScreen = ({ setView, tables, loadTables }) => {
+  const [step, setStep] = useState(1);
+  const [bookingType, setBookingType] = useState('');
+  const [tableSize, setTableSize] = useState(null);
+  const [selectedTable, setSelectedTable] = useState('');
+  const [tableName, setTableName] = useState('');
+  const [bookingFor, setBookingFor] = useState('self');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [numPeople, setNumPeople] = useState(1);
+  const [guestNames, setGuestNames] = useState([]);
+  const [menuChoice, setMenuChoice] = useState('');
+  const [bottles, setBottles] = useState({ vinoRosso: 0, vinoRosato: 0, vinoBianco: 0, prosecco: 0, champagne: 0, ginBasic: 0, ginPremium: 0 });
+  const [orderBottles, setOrderBottles] = useState(false);
+
+  const availableTables = tables.filter(t => t.availableSeats > 0);
+
+  const updateGuestNames = (index, field, value) => {
+    const updated = [...guestNames];
+    updated[index][field] = value;
+    setGuestNames(updated);
+  };
+
+  useEffect(() => {
+    if (bookingFor === 'other') {
+      const lastGuest = guestNames[guestNames.length - 1];
+      const isLastComplete = lastGuest?.firstName && lastGuest?.lastName;
+      if (guestNames.length === 0) setGuestNames([{ firstName: '', lastName: '' }]);
+      else if (isLastComplete && guestNames.length < numPeople) setGuestNames([...guestNames, { firstName: '', lastName: '' }]);
+    }
+  }, [guestNames, numPeople, bookingFor]);
+
+  const calculateTotal = () => {
+    const totalPeople = bookingFor === 'self' ? 1 : numPeople + 1; // +1 per includere chi prenota
+    const menuPrice = menuChoice === 'drink' ? 15 : 10;
+    const bottlePrice = (bottles.vinoRosso * 25) + (bottles.vinoRosato * 25) + (bottles.vinoBianco * 25) + (bottles.prosecco * 30) + (bottles.champagne * 110) + (bottles.ginBasic * 100) + (bottles.ginPremium * 120);
+    return (menuPrice * totalPeople) + bottlePrice;
+  };
+
+const handleSubmit = async () => {
+  const total = calculateTotal();
+  const reservation = {
+    tableName: bookingType === 'new' ? tableName : selectedTable,
+    firstName,
+    lastName,
+    email,
+    tableSize: bookingType === 'new' ? tableSize : availableTables.find(t => t.name === selectedTable)?.size,
+    menuChoice,
+    total,
+    guests: guestNames.filter(g => g.firstName && g.lastName),
+    bottles: bottles
+  };
+
+  try {
+    // Salva su Google Sheets
+    await fetch('https://script.google.com/macros/s/AKfycbyFP3ACqDbGzAIA0Uq6RFhJriw0VgDZRivR-kMivlbuyt2mjqfCeJugqbgDgjAlF3HhhA/exec', {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(reservation)
+    });
+
+    // Aggiorna storage locale
+    if (bookingType === 'new') {
+      await window.storage.set(`table:${tableName}`, JSON.stringify({
+        name: tableName,
+        size: tableSize,
+        availableSeats: tableSize - (bookingFor === 'self' ? 1 : numPeople),
+        reservations: [reservation]
+      }));
+    } else {
+      const tableData = await window.storage.get(`table:${selectedTable}`);
+      if (tableData) {
+        const table = JSON.parse(tableData.value);
+        table.availableSeats -= (bookingFor === 'self' ? 1 : numPeople);
+        table.reservations.push(reservation);
+        await window.storage.set(`table:${selectedTable}`, JSON.stringify(table));
+      }
+    }
+
+    // Popup conferma
+    const popup = document.createElement('div');
+    popup.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 9999;';
+    popup.innerHTML = '<div style="background: white; padding: 30px; border-radius: 12px; max-width: 400px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3);"><h2 style="font-family: DM Serif Text, serif; font-size: 20px; color: #1a1a1a; margin-bottom: 15px;">Grazie per averci scelto!</h2><p style="font-family: Roboto, sans-serif; font-size: 14px; color: #333; line-height: 1.6; margin-bottom: 20px;">Ti ricordiamo che il tavolo va saldato entro e non oltre il <strong>20 Dicembre</strong>.</p><button onclick="this.parentElement.parentElement.remove(); window.location.reload();" style="background: black; color: white; border: none; padding: 12px 30px; font-size: 14px; border-radius: 8px; cursor: pointer; font-family: Roboto, sans-serif; font-weight: bold;">OK</button></div>';
+    document.body.appendChild(popup);
+    await loadTables();
+  } catch (error) {
+    alert('Errore durante la prenotazione. Riprova.');
+    console.error(error);
+  }
+};
+  return (
+    <div className="h-screen overflow-y-auto p-3">
+      <button onClick={() => step === 1 ? setView('home') : setStep(step - 1)} className="mb-3 text-white underline text-sm" style={{ fontFamily: 'Bodoni MT, Georgia, serif' }}>← Indietro</button>
+      
+      {step === 1 && (
+        <div className="max-w-md mx-auto space-y-3">
+          <div className="bg-gradient-to-br from-yellow-600 via-yellow-500 to-amber-600 p-4 rounded-lg shadow-2xl">
+            <h3 className="text-lg mb-3 text-white text-center font-semibold" style={{ fontFamily: 'DM Serif Text, serif' }}>Apri un nuovo tavolo</h3>
+            <div className="space-y-3">
+              <select 
+                value={tableSize || ''} 
+                onChange={(e) => {
+                  const size = parseInt(e.target.value);
+                  if (size) {
+                    setBookingType('new');
+                    setTableSize(size);
+                  }
+                }}
+                className="w-full p-3 rounded-lg shadow-lg border border-gray-100 text-black text-sm bg-white"
+                style={{ fontFamily: 'Roboto, sans-serif' }}
+              >
+                <option value="">Seleziona numero ospiti...</option>
+                <option value="4">4 persone</option>
+                <option value="5">5 persone</option>
+                <option value="6">6 persone</option>
+                <option value="7">7 persone</option>
+                <option value="8">8 persone</option>
+                <option value="9">9 persone</option>
+                <option value="10">10 persone</option>
+                <option value="11">11 persone</option>
+                <option value="12">12 persone</option>
+              </select>
+              {tableSize && (
+                <button onClick={() => setStep(2)} className="w-full bg-white text-black py-3 text-sm rounded-lg font-bold hover:bg-opacity-90 transition shadow-lg" style={{ fontFamily: 'Roboto, sans-serif' }}>Continua</button>
+              )}
+            </div>
+          </div>
+          <div className="bg-gradient-to-br from-green-700 via-green-600 to-green-800 p-4 rounded-lg shadow-2xl">
+            <h3 className="text-lg mb-3 text-white text-center font-semibold" style={{ fontFamily: 'DM Serif Text, serif' }}>Unisciti a un tavolo esistente</h3>
+            {availableTables.length > 0 ? (
+              <div className="bg-white p-3 rounded-lg shadow-lg">
+                <button onClick={() => { setBookingType('join'); setStep(3); }} className="w-full text-black text-sm" style={{ fontFamily: 'Roboto, sans-serif' }}>Scegli un tavolo</button>
+              </div>
+            ) : <p className="text-center text-white opacity-80 text-sm">Nessun tavolo disponibile</p>}
+          </div>
+        </div>
+      )}
+
+      {step === 2 && (
+        <div className="max-w-md mx-auto bg-white bg-opacity-95 p-4 rounded-lg shadow-2xl space-y-3">
+          <h3 className="text-lg mb-3 text-black text-center font-bold" style={{ fontFamily: 'Roboto, sans-serif' }}>Nome del tavolo</h3>
+          <input type="text" value={tableName} onChange={(e) => setTableName(e.target.value)} placeholder="es. Tavolo Amici, Famiglia Rossi..." className="w-full p-2.5 text-sm rounded-lg bg-gray-50 text-black placeholder-gray-500 border border-gray-200 focus:outline-none focus:border-black" style={{ fontFamily: 'Roboto, sans-serif' }} />
+          <h3 className="text-lg mb-3 text-black text-center font-bold pt-2" style={{ fontFamily: 'Roboto, sans-serif' }}>Dati prenotazione</h3>
+          <div>
+            <label className="block mb-2 text-black font-bold text-sm" style={{ fontFamily: 'Roboto, sans-serif' }}>Prenoto per:</label>
+            <div className="flex gap-2">
+              <button onClick={() => { setBookingFor('self'); setNumPeople(1); setGuestNames([]); }} className={`flex-1 py-2 text-sm rounded-lg transition ${bookingFor === 'self' ? 'bg-red-900 text-white' : 'bg-gray-100 text-black border border-gray-300'}`} style={{ fontFamily: 'Roboto, sans-serif' }}>Me stesso</button>
+              <button onClick={() => setBookingFor('other')} className={`flex-1 py-2 text-sm rounded-lg transition ${bookingFor === 'other' ? 'bg-red-900 text-white' : 'bg-gray-100 text-black border border-gray-300'}`} style={{ fontFamily: 'Roboto, sans-serif' }}>Altri</button>
+            </div>
+          </div>
+          <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Nome" className="w-full p-2.5 text-sm rounded-lg bg-gray-50 text-black placeholder-gray-500 border border-gray-200 focus:outline-none focus:border-black" style={{ fontFamily: 'Roboto, sans-serif' }} />
+          <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Cognome" className="w-full p-2.5 text-sm rounded-lg bg-gray-50 text-black placeholder-gray-500 border border-gray-200 focus:outline-none focus:border-black" style={{ fontFamily: 'Roboto, sans-serif' }} />
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" className="w-full p-2.5 text-sm rounded-lg bg-gray-50 text-black placeholder-gray-500 border border-gray-200 focus:outline-none focus:border-black" style={{ fontFamily: 'Roboto, sans-serif' }} />
+          {bookingFor === 'other' && (
+            <>
+              <div>
+                <label className="block mb-2 text-black font-bold text-sm" style={{ fontFamily: 'Roboto, sans-serif' }}>Per quante persone stai prenotando?</label>
+                <input type="number" min="1" max={tableSize} value={numPeople} onChange={(e) => setNumPeople(parseInt(e.target.value) || 1)} className="w-full p-2.5 text-sm rounded-lg bg-gray-50 text-black border border-gray-200 focus:outline-none focus:border-black" style={{ fontFamily: 'Roboto, sans-serif' }} />
+              </div>
+              <div>
+                <label className="block mb-2 text-black font-bold text-sm" style={{ fontFamily: 'Roboto, sans-serif' }}>Nome e cognome degli ospiti:</label>
+                {guestNames.map((guest, idx) => (
+                  <div key={idx} className="space-y-2 mb-3">
+                    <input type="text" value={guest.firstName} onChange={(e) => updateGuestNames(idx, 'firstName', e.target.value)} placeholder={`Nome ospite ${idx + 1}`} className="w-full p-2 text-sm rounded-lg bg-gray-50 text-black placeholder-gray-500 border border-gray-200 focus:outline-none focus:border-black" style={{ fontFamily: 'Roboto, sans-serif' }} />
+                    {guest.firstName && <input type="text" value={guest.lastName} onChange={(e) => updateGuestNames(idx, 'lastName', e.target.value)} placeholder={`Cognome ospite ${idx + 1}`} className="w-full p-2 text-sm rounded-lg bg-gray-50 text-black placeholder-gray-500 border border-gray-200 focus:outline-none focus:border-black" style={{ fontFamily: 'Roboto, sans-serif' }} />}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+          <button onClick={() => { if (!tableName) alert('Inserisci un nome per il tavolo'); else setStep(4); }} className="w-full bg-black text-white py-3 text-sm rounded-lg font-bold hover:bg-opacity-90 transition shadow-lg" style={{ fontFamily: 'Roboto, sans-serif' }}>Continua</button>
+        </div>
+      )}
+
+      {step === 3 && (
+        <div className="max-w-md mx-auto bg-white bg-opacity-95 p-4 rounded-lg shadow-2xl space-y-3">
+          <h3 className="text-lg mb-3 text-black text-center font-bold" style={{ fontFamily: 'Roboto, sans-serif' }}>Scegli un tavolo</h3>
+          <select value={selectedTable} onChange={(e) => setSelectedTable(e.target.value)} className="w-full p-2.5 text-sm rounded-lg bg-gray-50 text-black mb-3 border border-gray-200 focus:outline-none focus:border-black" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            <option value="">Seleziona...</option>
+            {availableTables.map(table => <option key={table.name} value={table.name}>{table.name} - {table.availableSeats} posti disponibili</option>)}
+          </select>
+          <h3 className="text-lg mb-3 text-black text-center font-bold pt-2" style={{ fontFamily: 'Roboto, sans-serif' }}>Dati prenotazione</h3>
+          <div>
+            <label className="block mb-2 text-black font-bold text-sm" style={{ fontFamily: 'Roboto, sans-serif' }}>Prenoto per:</label>
+            <div className="flex gap-2">
+              <button onClick={() => { setBookingFor('self'); setNumPeople(1); setGuestNames([]); }} className={`flex-1 py-2 text-sm rounded-lg transition ${bookingFor === 'self' ? 'bg-red-900 text-white' : 'bg-gray-100 text-black border border-gray-300'}`} style={{ fontFamily: 'Roboto, sans-serif' }}>Me stesso</button>
+              <button onClick={() => setBookingFor('other')} className={`flex-1 py-2 text-sm rounded-lg transition ${bookingFor === 'other' ? 'bg-red-900 text-white' : 'bg-gray-100 text-black border border-gray-300'}`} style={{ fontFamily: 'Roboto, sans-serif' }}>Altri</button>
+            </div>
+          </div>
+          <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Nome" className="w-full p-2.5 text-sm rounded-lg bg-gray-50 text-black placeholder-gray-500 border border-gray-200 focus:outline-none focus:border-black" style={{ fontFamily: 'Roboto, sans-serif' }} />
+          <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Cognome" className="w-full p-2.5 text-sm rounded-lg bg-gray-50 text-black placeholder-gray-500 border border-gray-200 focus:outline-none focus:border-black" style={{ fontFamily: 'Roboto, sans-serif' }} />
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" className="w-full p-2.5 text-sm rounded-lg bg-gray-50 text-black placeholder-gray-500 border border-gray-200 focus:outline-none focus:border-black" style={{ fontFamily: 'Roboto, sans-serif' }} />
+          {bookingFor === 'other' && (
+            <>
+              <div>
+                <label className="block mb-2 text-black font-bold text-sm" style={{ fontFamily: 'Roboto, sans-serif' }}>Per quante persone stai prenotando?</label>
+                <input type="number" min="1" max={Math.max(1, (availableTables.find(t => t.name === selectedTable)?.availableSeats || 1) - 1)} value={numPeople} onChange={(e) => setNumPeople(parseInt(e.target.value) || 1)} className="w-full p-2.5 text-sm rounded-lg bg-gray-50 text-black border border-gray-200 focus:outline-none focus:border-black" style={{ fontFamily: 'Roboto, sans-serif' }} />
+              </div>
+              <div>
+                <label className="block mb-2 text-black font-bold text-sm" style={{ fontFamily: 'Roboto, sans-serif' }}>Nome e cognome degli ospiti:</label>
+                {guestNames.map((guest, idx) => (
+                  <div key={idx} className="space-y-2 mb-3">
+                    <input type="text" value={guest.firstName} onChange={(e) => updateGuestNames(idx, 'firstName', e.target.value)} placeholder={`Nome ospite ${idx + 1}`} className="w-full p-2 text-sm rounded-lg bg-gray-50 text-black placeholder-gray-500 border border-gray-200 focus:outline-none focus:border-black" style={{ fontFamily: 'Roboto, sans-serif' }} />
+                    {guest.firstName && <input type="text" value={guest.lastName} onChange={(e) => updateGuestNames(idx, 'lastName', e.target.value)} placeholder={`Cognome ospite ${idx + 1}`} className="w-full p-2 text-sm rounded-lg bg-gray-50 text-black placeholder-gray-500 border border-gray-200 focus:outline-none focus:border-black" style={{ fontFamily: 'Roboto, sans-serif' }} />}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+          <button onClick={() => { if (!selectedTable) alert('Seleziona un tavolo'); else setStep(4); }} className="w-full bg-black text-white py-3 text-sm rounded-lg font-bold hover:bg-opacity-90 transition shadow-lg" style={{ fontFamily: 'Roboto, sans-serif' }}>Continua</button>
+        </div>
+      )}
+{step === 4 && (
+        <div className="max-w-md mx-auto bg-white bg-opacity-95 p-4 rounded-lg shadow-2xl space-y-3">
+          <h3 className="text-lg mb-3 text-black text-center" style={{ fontFamily: 'DM Serif Text, serif', fontWeight: 'bold' }}>Scegli il menu</h3>
+          <button onClick={() => setMenuChoice('drink')} className={`w-full p-4 rounded-lg text-left transition shadow-lg ${menuChoice === 'drink' ? 'bg-black text-white' : 'bg-gray-50 text-black border border-gray-300'}`}>
+            <div className="text-base mb-2" style={{ fontFamily: 'DM Serif Text, serif', fontWeight: '600' }}>Aperitivo con Drink - €15</div>
+            <ul className="text-xs opacity-80 ml-3 space-y-0.5" style={{ fontFamily: 'Roboto, sans-serif', listStyleType: 'disc' }}>
+              <li>Cuddruriaddru</li>
+              <li>Baguette con salame spagnolo alle erbe</li>
+              <li>Caprino</li>
+              <li>Copocollo</li>
+              <li>Pitta Mortadella IGP e provolone piccante</li>
+              <li>Olive ascolane</li>
+              <li>+ Cocktail/Birra/Bibita/Calice/Acqua</li>
+            </ul>
+          </button>
+          <button onClick={() => setMenuChoice('aperitivo')} className={`w-full p-4 rounded-lg text-left transition shadow-lg ${menuChoice === 'aperitivo' ? 'bg-black text-white' : 'bg-gray-50 text-black border border-gray-300'}`}>
+            <div className="text-base mb-2" style={{ fontFamily: 'DM Serif Text, serif', fontWeight: '600' }}>Aperitivo senza Drink - €10</div>
+            <ul className="text-xs opacity-80 ml-3 space-y-0.5" style={{ fontFamily: 'Roboto, sans-serif', listStyleType: 'disc' }}>
+              <li>Cuddruriaddru</li>
+              <li>Baguette con salame spagnolo alle erbe</li>
+              <li>Caprino</li>
+              <li>Copocollo</li>
+              <li>Pitta Mortadella IGP e provolone piccante</li>
+              <li>Olive ascolane</li>
+            </ul>
+          </button>
+          {menuChoice === 'aperitivo' && (
+            <div className="border-t border-gray-300 pt-3">
+              <div className="flex items-center justify-between mb-3">
+                <label className="font-normal text-black text-sm" style={{ fontFamily: 'Roboto, sans-serif' }}>Prenota bottiglie</label>
+                <button onClick={() => setOrderBottles(!orderBottles)} className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${orderBottles ? 'bg-black' : 'bg-gray-400'}`}>
+                  <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-300 ${orderBottles ? 'translate-x-6' : 'translate-x-0'}`} />
+                </button>
+              </div>
+              {orderBottles && (
+                <div className="space-y-2">
+                  {[
+                    { key: 'vinoRosso', label: 'Vino rosso Passariello - Cantine dei briganti', price: 25 },
+                    { key: 'vinoRosato', label: 'Vino rosato - Cantine dei Briganti', price: 25 },
+                    { key: 'vinoBianco', label: 'Vino bianco - Cantine dei briganti', price: 25 },
+                    { key: 'prosecco', label: 'Prosecco Doc Extra dry', price: 30 },
+                    { key: 'champagne', label: 'Champagne Moet', price: 110 },
+                    { key: 'ginBasic', label: 'Gin base (Bickens, Bulldog)', price: 100 },
+                    { key: 'ginPremium', label: 'Gin premium (Mare, Hendricks)', price: 120 }
+                  ].map(item => (
+                    <div key={item.key} className="flex items-center justify-between bg-gray-50 p-2.5 rounded-lg border border-gray-200">
+                      <span className="text-black text-xs" style={{ fontFamily: 'Roboto, sans-serif' }}>{item.label} (€{item.price})</span>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => setBottles({ ...bottles, [item.key]: Math.max(0, bottles[item.key] - 1) })} className="bg-gray-300 text-black w-6 h-6 text-sm rounded hover:bg-gray-400 transition">-</button>
+                        <span className="w-6 text-center text-black font-semibold text-xs">{bottles[item.key]}</span>
+                        <button onClick={() => setBottles({ ...bottles, [item.key]: bottles[item.key] + 1 })} className="bg-black text-white w-6 h-6 text-sm rounded hover:bg-opacity-90 transition">+</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          {menuChoice && (
+            <div className="border-t border-gray-300 pt-3">
+              <div className="text-2xl text-center mb-3 text-black" style={{ fontFamily: 'DM Serif Text, serif' }}>Totale: €{calculateTotal()}</div>
+              <button onClick={handleSubmit} className="w-full bg-black text-white py-3 rounded-lg font-bold hover:bg-opacity-90 transition text-base shadow-2xl" style={{ fontFamily: 'Roboto, sans-serif' }}>Conferma Prenotazione</button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const InfoScreen = ({ setView }) => {
+  const [showMenu, setShowMenu] = useState(false);
+  
+  return (
+    <div className="h-screen overflow-y-auto p-3">
+      <button onClick={() => setView('home')} className="mb-3 text-white underline text-sm">← Torna alla home</button>
+      <div className="max-w-md mx-auto bg-white bg-opacity-10 p-4 rounded-lg">
+        <h2 className="text-2xl mb-4 text-center" style={{ fontFamily: 'Bodoni MT, Georgia, serif' }}>Info Utili</h2>
+        
+        <div className="flex gap-2 mb-4">
+          <button onClick={() => setShowMenu(!showMenu)} className="flex-1 bg-white text-black py-3 rounded-lg font-bold hover:bg-opacity-90 transition text-sm shadow-lg" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            Vedi menù
+          </button>
+          <button onClick={() => window.location.href = 'tel:+39098424945'} className="flex-1 bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-500 transition text-sm shadow-lg" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            Chiama ora
+          </button>
+        </div>
+
+        {showMenu && (
+          <div className="bg-white bg-opacity-95 p-4 rounded-lg mb-4 shadow-xl">
+            <h3 className="text-lg font-bold text-black mb-3 text-center" style={{ fontFamily: 'DM Serif Text, serif' }}>Il nostro menù</h3>
+            <ul className="text-black space-y-2 text-sm" style={{ fontFamily: 'Roboto, sans-serif' }}>
+              <li>• Cuddruriaddru</li>
+              <li>• Caprino</li>
+              <li>• Capocollo di suino nero DOP</li>
+              <li>• Ricottina</li>
+              <li>• Baguette con salame spagnolo</li>
+              <li>• Mini pitta con mortadella IGP e provolone piccante</li>
+              <li>• Olive di cerignola</li>
+            </ul>
+          </div>
+        )}
+
+        <div className="space-y-4">
+          <div className="flex items-start gap-2">
+            <Calendar size={20} className="mt-1 flex-shrink-0" />
+            <div>
+              <h3 className="font-bold text-base mb-1">Data e Orario</h3>
+              <p className="opacity-90 text-sm">24 Dicembre 2025, ore 12:00</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-2">
+            <MapPin size={20} className="mt-1 flex-shrink-0" />
+            <div>
+              <h3 className="font-bold text-base mb-1">Luogo</h3>
+              <a href="https://www.google.com/maps/search/?api=1&query=C.so+Mazzini+3b,+Cosenza+(CS)+87100" target="_blank" rel="noopener noreferrer" className="opacity-90 text-sm underline hover:opacity-100 transition">
+    C.so Mazzini 3b, Cosenza (CS) 87100
+  </a>
+            </div>
+          </div>
+          <div className="border-t border-white border-opacity-30 pt-3">
+            <h3 className="font-bold text-base mb-2">Importante</h3>
+            <ul className="space-y-1.5 opacity-90 text-sm">
+              <li>• Il tavolo va saldato entro il 20 dicembre</li>
+              <li>• Dopo il 20 dicembre la prenotazione decade automaticamente</li>
+              <li>• Riceverai una email di conferma con tutti i dettagli</li>
+              <li>• Per informazioni: recruitingdelizie@gmail.com</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const SocialScreen = ({ setView }) => (
+  <div className="h-screen overflow-y-auto p-3">
+    <button onClick={() => setView('home')} className="mb-3 text-white underline text-sm">← Torna alla home</button>
+    <div className="max-w-md mx-auto bg-white bg-opacity-10 p-4 rounded-lg text-center">
+      <h2 className="text-2xl mb-6" style={{ fontFamily: 'Bodoni MT, Georgia, serif' }}>Seguici</h2>
+      <div className="space-y-3">
+        <a href="https://instagram.com/delizie_pasticceria" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 bg-pink-600 py-3 rounded-lg font-semibold hover:bg-pink-500 transition text-sm">
+          <Instagram size={20} />Instagram
+        </a>
+        <a href="https://www.facebook.com/delizie.cs" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 bg-blue-600 py-3 rounded-lg font-semibold hover:bg-blue-500 transition text-sm">
+          <Facebook size={20} />Facebook
+        </a>
+      </div>
+      <p className="mt-6 opacity-75 text-xs">Resta aggiornato su eventi e novità!</p>
+    </div>
+  </div>
+);
+
+ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>
