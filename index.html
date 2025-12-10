@@ -303,7 +303,7 @@ const handleSubmit = async () => {
               <div>
                 <label className="block mb-2 text-black font-bold text-sm" style={{ fontFamily: 'Roboto, sans-serif' }}>Per quante persone stai prenotando? (oltre te)</label>
                 <select value={numPeople} onChange={(e) => setNumPeople(parseInt(e.target.value))} className="w-full p-2.5 text-sm rounded-lg bg-gray-50 text-black border border-gray-200 focus:outline-none focus:border-black" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  {Array.from({length: tableSize}, (_, i) => i + 1).map(n => (
+                  {Array.from({length: tableSize - 1}, (_, i) => i + 1).map(n => (
                     <option key={n} value={n}>{n} {n === 1 ? 'persona' : 'persone'}</option>
                   ))}
                 </select>
